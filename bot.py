@@ -36,13 +36,20 @@ async def check_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if unique_id in media_db:
         first_message_id = media_db[unique_id]["message_id"]
         original_user = media_db[unique_id]["user"]
-        # Бот отвечает на оригинал, а не на дубль
-        await context.bot.send_message(
-            chat_id=message.chat_id,
-            text=f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!
+
+        try:
+            await context.bot.send_message(
+                chat_id=message.chat_id,
+                text=f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!
 😡 {user_mention}, ты теперь официально — Денис",
-            reply_to_message_id=first_message_id
-        )
+                reply_to_message_id=first_message_id
+            )
+        except Exception as e:
+            logging.warning(f"Не удалось ответить на оригинал: {e}")
+            await message.reply_text(
+                f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!
+😡 {user_mention}, ты теперь официально — Денис"
+            )
     else:
         media_db[unique_id] = {
             "message_id": message.message_id,
