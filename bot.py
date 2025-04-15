@@ -58,7 +58,7 @@ async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("проверка", check_command))
+    app.add_handler(CommandHandler("check", check_command))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO | filters.ANIMATION, check_media))
     print("Бот запущен!")
     app.run_polling()
