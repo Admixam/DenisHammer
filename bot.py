@@ -6,7 +6,6 @@ from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, fil
 BOT_TOKEN = '7514163342:AAFBkgAcBCvtCvev93talMVgI9Fyl20hVug'
 DATA_FILE = 'media_db.json'
 
-# Загрузка базы
 try:
     with open(DATA_FILE, 'r') as f:
         media_db = json.load(f)
@@ -15,7 +14,6 @@ except FileNotFoundError:
 
 logging.basicConfig(level=logging.INFO)
 
-# Проверка медиа на дубликат
 async def check_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     user = message.from_user
@@ -35,20 +33,17 @@ async def check_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if unique_id in media_db:
         first_message_id = media_db[unique_id]["message_id"]
-        original_user = media_db[unique_id]["user"]
 
         try:
             await context.bot.send_message(
                 chat_id=message.chat_id,
-                text=f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!
-😡 {user_mention}, ты теперь официально — Денис",
+                text=f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!\n😡 {user_mention}, ты теперь официально — Денис",
                 reply_to_message_id=first_message_id
             )
         except Exception as e:
             logging.warning(f"Не удалось ответить на оригинал: {e}")
             await message.reply_text(
-                f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!
-😡 {user_mention}, ты теперь официально — Денис"
+                f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!\n😡 {user_mention}, ты теперь официально — Денис"
             )
     else:
         media_db[unique_id] = {
@@ -58,11 +53,9 @@ async def check_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(DATA_FILE, 'w') as f:
             json.dump(media_db, f)
 
-# Команда /проверка
 async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Я на месте, патрулирую мемы!")
 
-# Запуск бота
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("проверка", check_command))
