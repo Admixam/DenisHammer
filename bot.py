@@ -1,11 +1,14 @@
 import logging
 import json
+import os
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
 BOT_TOKEN = '7514163342:AAFBkgAcBCvtCvev93talMVgI9Fyl20hVug'
 DATA_FILE = 'media_db.json'
+PORT = int(os.environ.get('PORT', '10000'))
 
+# Загрузка базы
 try:
     with open(DATA_FILE, 'r') as f:
         media_db = json.load(f)
@@ -14,6 +17,7 @@ except FileNotFoundError:
 
 logging.basicConfig(level=logging.INFO)
 
+# Проверка медиа на дубликат
 async def check_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message = update.message
     user = message.from_user
@@ -33,17 +37,18 @@ async def check_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if unique_id in media_db:
         first_message_id = media_db[unique_id]["message_id"]
-
         try:
             await context.bot.send_message(
                 chat_id=message.chat_id,
-                text=f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!\n😡 {user_mention}, ты теперь официально — Денис",
+                text=f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!
+😡 {user_mention}, ты теперь официально — Денис",
                 reply_to_message_id=first_message_id
             )
         except Exception as e:
             logging.warning(f"Не удалось ответить на оригинал: {e}")
             await message.reply_text(
-                f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!\n😡 {user_mention}, ты теперь официально — Денис"
+                f"У нас ДЕНИС! ЭТО НЕ УЧЕБНАЯ ТРЕВОГА!
+😡 {user_mention}, ты теперь официально — Денис"
             )
     else:
         media_db[unique_id] = {
@@ -53,15 +58,24 @@ async def check_media(update: Update, context: ContextTypes.DEFAULT_TYPE):
         with open(DATA_FILE, 'w') as f:
             json.dump(media_db, f)
 
+# /check команда
 async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Я на месте, патрулирую мемы!")
 
-def main():
+# Запуск Webhook-сервера
+async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("check", check_command))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO | filters.ANIMATION, check_media))
-    print("Бот запущен!")
-    app.run_polling()
+
+    webhook_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/"
+    print(f"Запуск по Webhook: {webhook_url}")
+    await app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        webhook_url=webhook_url
+    )
 
 if __name__ == '__main__':
-    main()
+    import asyncio
+    asyncio.run(main())
