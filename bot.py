@@ -95,7 +95,7 @@ async def check_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("check", check_command))
-    app.add_handler(CommandHandler("топ_денисов", top_denis_command))
+    app.add_handler(CommandHandler("top_denisov", top_denis_command))
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO | filters.ANIMATION, check_media))
 
     webhook_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/"
